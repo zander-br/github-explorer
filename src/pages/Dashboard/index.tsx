@@ -1,65 +1,61 @@
-import React from 'react';
+import React, { useState, FormEvent } from 'react';
 import { FiChevronRight } from 'react-icons/fi';
 
+import api from '../../service/api';
 import logoImg from '../../assets/logo.svg';
 import { Title, Form, Repositories } from './styles';
 
+interface Repository {
+  full_name: string;
+  description: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  };
+}
+
 const Dashboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+
+  async function handleAddRepository(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const response = await api.get<Repository>(`repos/${newRepo}`);
+    const repository = response.data;
+
+    setRepositories([...repositories, repository]);
+    setNewRepo('');
+  }
+
   return (
     <>
       <img src={logoImg} alt="Github Explorer" />
       <Title>Explore repositórios no Github</Title>
 
-      <Form>
-        <input placeholder="Digite o nome do repositório" />
+      <Form onSubmit={handleAddRepository}>
+        <input
+          placeholder="Digite o nome do repositório"
+          value={newRepo}
+          onChange={e => setNewRepo(e.target.value)}
+        />
         <button type="submit">Pesquisar</button>
       </Form>
 
       <Repositories>
-        <a href="/">
-          <img
-            src="https://avatars3.githubusercontent.com/u/51419725?s=400&u=b79bcdcdefb88e6f91e47ea92521da7fade82500&v=4"
-            alt="Anderson Santos"
-          />
-          <div>
-            <strong>zander-br/markdown-course</strong>
-            <p>
-              Aprenda a usar a linguagem de marcação markdown, e valorize ainda
-              mais o seu projeto.
-            </p>
-          </div>
-          <FiChevronRight size={20} />
-        </a>
-
-        <a href="/">
-          <img
-            src="https://avatars3.githubusercontent.com/u/51419725?s=400&u=b79bcdcdefb88e6f91e47ea92521da7fade82500&v=4"
-            alt="Anderson Santos"
-          />
-          <div>
-            <strong>zander-br/markdown-course</strong>
-            <p>
-              Aprenda a usar a linguagem de marcação markdown, e valorize ainda
-              mais o seu projeto.
-            </p>
-          </div>
-          <FiChevronRight size={20} />
-        </a>
-
-        <a href="/">
-          <img
-            src="https://avatars3.githubusercontent.com/u/51419725?s=400&u=b79bcdcdefb88e6f91e47ea92521da7fade82500&v=4"
-            alt="Anderson Santos"
-          />
-          <div>
-            <strong>zander-br/markdown-course</strong>
-            <p>
-              Aprenda a usar a linguagem de marcação markdown, e valorize ainda
-              mais o seu projeto.
-            </p>
-          </div>
-          <FiChevronRight size={20} />
-        </a>
+        {repositories.map(repository => (
+          <a key={repository.full_name} href="/">
+            <img
+              src={repository.owner.avatar_url}
+              alt={repository.owner.login}
+            />
+            <div>
+              <strong>{repository.full_name}</strong>
+              <p>{repository.description}</p>
+            </div>
+            <FiChevronRight size={20} />
+          </a>
+        ))}
       </Repositories>
     </>
   );
